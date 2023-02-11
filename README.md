@@ -8,5 +8,82 @@ NRGI offers a variable-rate tariff for electricity. The variable-rate can be use
 
 This API lets you see the variable-rate prices for the next 48 hours. Which can be used to let you know when to use power hungry devices.
 
-## Installation
 
+# Installation
+### HACS (recommended)
+
+This card is available in [HACS](https://hacs.xyz/) (Home Assistant Community Store).
+<small>_HACS is a third party community store and is not included in Home Assistant out of the box._</small>
+
+# Display in Lovelace
+
+To display the variable-rate prices in Lovelace, you use the ApexCharts card. The ApexCharts card is a custom card that can be installed using HACS. The card can be found here: https://github.com/RomRider/apexcharts-card.
+
+## Prices for today:
+
+![Prices for today](./images/price_today.png)
+
+```yaml
+type: custom:apexcharts-card
+graph_span: 24h
+header:
+  title: Energy price today (dkk/kWh)
+  show: true
+span:
+  start: day
+now:
+  show: true
+  label: Now
+apex_config:
+  yaxis:
+    min: 0
+    max: 4 # If you want the y-axis to be fixed at 4 dkk/kWh
+series:
+  - entity: sensor.nrgi_price_dk1
+    type: column
+    data_generator: |
+      return entity.attributes.raw_today.map((start, index) => {
+        return [new Date(start["start"]).getTime(), start["value"]];
+      });
+```
+
+## Prices for tomorrow:
+
+![Prices for today](./images/price_tomorrow.png)
+```yaml
+type: custom:apexcharts-card
+graph_span: 24h
+header:
+  title: Energy price tomorrow (dkk/kWh)
+  show: true
+span:
+  start: day
+  offset: +1d # Used to offset the start of the graph by 1 day
+now:
+  show: true
+  label: Now
+apex_config:
+  yaxis:
+    min: 0
+    max: 4 # If you want the y-axis to be fixed at 4 dkk/kWh
+series:
+  - entity: sensor.nrgi_price_dk1
+    type: column
+    data_generator: |
+      return entity.attributes.raw_tomorrow.map((start, index) => {
+        return [new Date(start["start"]).getTime(), start["value"]];
+      });
+```
+
+
+# FAQ
+
+**When can I see the prices for the next day?**
+
+The prices for the next day is available at 15:00. This is when NRGI updates the prices for the next day.
+
+**Which region should i pick?**
+
+The region is the area where you live. `DK1`is west part of denmark and `DK2` is the east part of denmark.
+![DK1](https://energinet.dk/media/dkqo12j3/dk1-dk2.png)
+*Source: [Energinet](https://energinet.dk/El/Systemydelser/Introduktion-til-Systemydelser/Oversigt-over-systemydelser/)*
