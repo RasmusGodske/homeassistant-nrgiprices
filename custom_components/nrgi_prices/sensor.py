@@ -19,7 +19,7 @@ MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=1)
 _LOGGER = logging.getLogger(__name__)
 NRGI_PRICE_ENDPOINT = "https://nrgi.dk/api/common/pricehistory"
 
-timezone_offset = +1.0  # Pacific Standard Time (UTC−08:00)
+timezone_offset = +1.0  # Europe/Copenhagen (UTC+01:00)
 tzinfo = timezone(timedelta(hours=timezone_offset))
 
 
@@ -87,8 +87,8 @@ class NrgiPrice(Entity):
 
     def get_attributes(self):
         days = {
-            "raw_today": self._hass_nrgi.today_data,
-            "raw_tomorrow": self._hass_nrgi.tomorrow_data
+            "raw_today": self._hass_nrgi.today_data or None,
+            "raw_tomorrow": self._hass_nrgi.tomorrow_data or None,
         }
 
         attributes = {
@@ -97,6 +97,11 @@ class NrgiPrice(Entity):
         }
 
         for day, full_price_result in days.items():
+
+          # Skip if no data eg. data is not yet available for tomorrow
+          if full_price_result is None:
+            continue
+
           price_points_attributes = list(map(lambda price_point: {
             "start": price_point.local_time,
             "price_inc_vat": price_point.price_inc_vat  / 100,
@@ -121,6 +126,10 @@ class NrgiPrice(Entity):
 
         # Update the state
         current_hour = datetime.now(tzinfo).hour
+
+        if self._hass_nrgi.today_data is None:
+          _LOGGER.debug("No today data available yet")
+          return
 
         price_now = self._hass_nrgi.today_data.prices[current_hour].value  / 100
         self._state = (price_now)
