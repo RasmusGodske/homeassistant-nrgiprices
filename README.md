@@ -1,3 +1,7 @@
+# Better Alternative
+
+As the developer of this integration I would suggest using [MTrab/energidataservice](https://github.com/MTrab/energidataservice). Energidataservice also works with NRGI in addition to other providers. It offeres more options and is more actively maintained. This integration only has a subset of the features that Energidataservice has to offer.
+
 # NRGI integration for Home Assistant
 **This integration is not affiliated with NRGI.**
 
